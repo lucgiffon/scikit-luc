@@ -1,4 +1,3 @@
-# import tensorflow as tftf
 import keras.backend as K
 from keras.activations import tanh
 
@@ -16,8 +15,6 @@ def keras_linear_kernel(args, normalize=True, tanh_activation=True):
         return tanh(result)
     else:
         return result
-
-
 
 def keras_chi_square_CPD(args, epsilon=None, tanh_activation=True, normalize=True):
     X = args[0]
@@ -42,12 +39,10 @@ def keras_chi_square_CPD(args, epsilon=None, tanh_activation=True, normalize=Tru
     else:
         return result
 
-
 def keras_chi_square_CPD_exp(args, gamma, epsilon=None, tanh_activation=True, normalize=True):
     result = keras_chi_square_CPD(args, epsilon, tanh_activation, normalize)
     result *= gamma
     return K.exp(result)
-
 
 def keras_rbf_kernel(args, gamma, tanh_activation=True, normalize=True):
     """
@@ -77,7 +72,6 @@ def keras_rbf_kernel(args, gamma, tanh_activation=True, normalize=True):
         return tanh(result)
     else:
         return result
-
 
 def keras_rbf_kernel_auto(args, tanh_activation=True, normalize=True):
     """

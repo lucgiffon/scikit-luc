@@ -1,15 +1,19 @@
 # -*- coding: utf-8 -*-
 import os
 from setuptools import setup, find_packages
-
+import io
 import skluc
-
 
 def read(*paths):
     """Build a file path from *paths* and return the contents."""
-    with open(os.path.join(*paths), 'r') as f:
+    with io.open(os.path.join(*paths), 'r', encoding="UTF-8") as f:
         return f.read()
 
+long_description =  read('README.rst') + '\n\n' + \
+    read('AUTHORS.rst') + '\n\n' + \
+    read('LICENSE.rst') + '\n\n'
+
+print(long_description)
 
 setup(
     # name of the package
@@ -22,9 +26,7 @@ setup(
     # Small description of the package
     description='Science-Kit with some utilities for machine learning.',
     # Long description
-    long_description=(read('README.rst') + '\n\n' +
-                      read('AUTHORS.rst') + '\n\n' +
-                      read('LICENSE.rst') + '\n\n'),
+    long_description=(long_description),
     # Project home page:
     url='',
     # license, author and author email

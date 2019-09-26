@@ -18,7 +18,7 @@ This package contains
 
 
 Installation from Pypi repository
-=================================
+---------------------------------
 
 Anywhere in your working virtualenv first install tensorflow using the documentation: https://www.tensorflow.org/install/
 Then just do:
@@ -26,7 +26,7 @@ Then just do:
     pip install scikit-luc
 
 Installation from sources
-=========================
+-------------------------
 
 In the root directory of the package, just do:
 

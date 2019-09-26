@@ -1,0 +1,10 @@
+--shared-parameter --shared-kw-parameter val_of_kw_parameter_1 --parameter1-a
+--shared-parameter --shared-kw-parameter val_of_kw_parameter_1 --parameter1-b
+--shared-parameter --shared-kw-parameter val_of_kw_parameter_2 --parameter1-a
+--shared-parameter --shared-kw-parameter val_of_kw_parameter_2 --parameter1-b
+--shared-parameter --shared-kw-parameter val_of_kw_parameter_1 --parameter2-a
+--shared-parameter --shared-kw-parameter val_of_kw_parameter_1 --parameter2-b
+--shared-parameter --shared-kw-parameter val_of_kw_parameter_2 --parameter2-a
+--shared-parameter --shared-kw-parameter val_of_kw_parameter_2 --parameter2-b
+--parameter3-a
+--parameter3-b

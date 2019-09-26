@@ -1,0 +1,23 @@
+all:  # this is the main 'rule'
+  rule1: # first kind of experiment
+  rule2: # second kind of experiment
+  rule3: # third kind of experiment
+
+base: # this is not called by all but by other rules
+  argname for both rules: ["--shared-parameter"] # this will be shared parameter for all "base" rule callers
+  other argname for both rules: {"--shared-kw-parameter": ["val_of_kw_parameter_1", "val_of_kw_parameter_2"]}
+
+rule1: # this is a top-level rule that will be called by all
+  base: # it calls base so it will get first the parameters of base
+  argname for rule 1: ["--parameter1-a", "--parameter1-b"] # it also has specific parameters for rule 1
+
+rule2: # this is a top-level rule that will be called by all
+  base: # it calls base so it will get first the parameters of base
+  argname for rule 2: ["--parameter2-a", "--parameter2-b"] # it also has specific parameters for rule 2
+
+rule3: # this is a top-level rule that will be called by all
+  # it doesn't call base, so it won't share the base parameters
+  argname for rule 3: ["--parameter3-a", "--parameter3-b"]
+
+
+

@@ -44,7 +44,11 @@ setup(
                       'psutil',
                       'imageio',
                       'matplotlib',
-                      'docopt'],
+                      'docopt',
+                      'opencv-python',
+                      'opencv-contrib-python',
+                      'googledrivedownloader',
+                      'requests'],
     # classifiers is needed for uploading package on pypi.
     # The list of classifiers elements can be found at :
     # https://pypi.python.org/pypi?%3Aaction=list_classifiers

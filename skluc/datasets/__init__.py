@@ -71,14 +71,19 @@ def load_plants():
 
 
 def load_caltech(final_size):
+    from google_drive_downloader import GoogleDriveDownloader as gdd
+
     data_url = "http://www.vision.caltech.edu/Image_Datasets/Caltech256/256_ObjectCategories.tar"
 
     lst_images = []
     lst_classes_idx = []
 
     with tempfile.TemporaryDirectory() as d_tmp:
-        logger.debug(f"Downloading file from url {data_url} to temporary directory {d_tmp}")
-        tarfile_path = Path(download_file(data_url, d_tmp))
+        destination_path = d_tmp + "/256_ObjectCategories.tar"
+        logger.debug(f"Downloading file from url {data_url} to temporary file {destination_path}")
+        gdd.download_file_from_google_drive(file_id='1r6o0pSROcV1_VwT4oSjA2FBUSCWGuxLK',
+                                            dest_path=destination_path)
+        tarfile_path = Path(destination_path)
 
         dir_path = Path(d_tmp)
 

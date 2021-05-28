@@ -17,18 +17,10 @@ This package contains
 - Some CLI tools under `tools`
 
 
-Installation from Pypi repository
----------------------------------
-
-Anywhere in your working virtualenv first install tensorflow using the documentation: https://www.tensorflow.org/install/
-Then just do:
-
-    pip install scikit-luc
-
 Installation from sources
 -------------------------
 
-In the root directory of the package, just do:
+Clone the github repository then in the root directory of the package, just do:
 
     python setup.py install
 

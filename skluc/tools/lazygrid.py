@@ -94,8 +94,8 @@ class LazygridParser:
             for key_arg, raw_value_arg in value.items():
                 # there is a lot of computation being repeated between iteration here but it shouldn't
                 # cost so much
-                formated_value_arg = (f"" + str(raw_value_arg)).format(LAZYFILE=self.lazyfilename)
-                iterable_value_arg = eval(str(formated_value_arg))
+                # formated_value_arg = (f"" + str(raw_value_arg)).format(LAZYFILE=self.lazyfilename)
+                iterable_value_arg = eval(str(raw_value_arg))
 
                 # check if the number of coefficients is consistent
                 if len_value_args == -1:
@@ -160,7 +160,7 @@ class LazygridParser:
 
     def build_cmd(self):
         try:
-            todo_cmd_lines = self.dataMap["all"].keys()
+            todo_rules = self.dataMap["all"].keys()
         except KeyError:
             raise KeyError("There should be a rule 'all'")
 
@@ -172,8 +172,15 @@ class LazygridParser:
             rule_content = self.dataMap[rulename]
             self.build_arguments_combinations_of_rule(rulename, rule_content)
 
-        for todo_cmd_line in todo_cmd_lines:
-            self.final_cmd_lines.extend(self.dct_argument_combinations_by_rule[todo_cmd_line])
+        for todo_rule in todo_rules:
+            batch_final_cmd_line = self.dct_argument_combinations_by_rule[todo_rule]
+            self.final_cmd_lines.extend(batch_final_cmd_line)
+
+        for idx_cmd_line, cmd_line in enumerate(self.final_cmd_lines):
+            identifier = np.abs(hash(cmd_line)) + np.random.randint(0, 1e10)
+            formated_cmd_line = cmd_line.format(IDENTIFIER=identifier, LAZYFILE=self.lazyfilename)
+            self.final_cmd_lines[idx_cmd_line] = formated_cmd_line
+
 
     def print(self):
         for line in self.final_cmd_lines:

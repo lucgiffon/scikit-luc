@@ -178,6 +178,7 @@ class LazygridParser:
 
         for idx_cmd_line, cmd_line in enumerate(self.final_cmd_lines):
             identifier = np.abs(hash(cmd_line)) + np.random.randint(0, 1e10)
+            identifier = str(idx_cmd_line + 1) + "_" + str(identifier)
             formated_cmd_line = cmd_line.format(IDENTIFIER=identifier, LAZYFILE=self.lazyfilename)
             self.final_cmd_lines[idx_cmd_line] = formated_cmd_line
 

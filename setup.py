@@ -73,6 +73,7 @@ setup(
     entry_points={
         'console_scripts': [
             'lazygrid=skluc.tools.lazygrid:main',
+            'csvgatherer=skluc.tools.csvgatherer:main',
         ],
     },
 )

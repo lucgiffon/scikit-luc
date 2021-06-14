@@ -5,9 +5,11 @@ import click_pathlib
 
 @click.command()
 @click.argument("results_dir", type=click_pathlib.Path(exists=True, dir_okay=True, resolve_path=True))
-@click.argument("output_dir", type=click_pathlib.Path(exists=False, dir_okay=True, resolve_path=True))
+@click.argument("output_dir", required=False, default=None, type=click_pathlib.Path(exists=False, dir_okay=True, resolve_path=True))
 @click.option("-c", "--count", is_flag=True, help="Print the number of lines in the resulting csv.")
 def main(results_dir, output_dir, count):
+    if output_dir is None:
+        output_dir = results_dir
 
     files = [x for x in results_dir.glob('**/*') if x.is_file()]
     lst_df = []

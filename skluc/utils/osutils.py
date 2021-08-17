@@ -11,6 +11,7 @@ import pathlib
 import scipy.io as sio
 
 from skluc.utils import logger
+from pathlib import Path
 
 
 def read_matfile(fname):
@@ -114,3 +115,16 @@ def check_files(filepaths):
     logger.debug("Check existence of files {}".format(str(filepaths)))
     return all([os.path.exists(fpath) for fpath in filepaths])
 
+def get_project_dir_path(__file, name_project):
+    """
+    Return the subpath of __file from the begining of the file to the name of the project.
+
+    :param __file: string path to file
+    :param name_project: string name of project
+    :return: path to project dir
+    """
+    split_file = __file.split("/")
+    idx_project_dir = split_file.index(name_project)
+    project_dir = "/".join(split_file[:(idx_project_dir + 1)])
+    project_dir = Path(project_dir)
+    return project_dir

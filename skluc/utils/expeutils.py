@@ -16,7 +16,7 @@ def get_ext_output_file(curr_file, project_dir, ext="csv"):
     return output_file
 
 
-def get_df_results(str_path_results, project_dir):
+def get_df_results(str_path_results, project_dir, dropna=True):
     """
     Return the df corresponding to csv file project_dir/str_path_results.
 
@@ -30,7 +30,8 @@ def get_df_results(str_path_results, project_dir):
     """
     abspath_results = project_dir / str_path_results
     df = pd.read_csv(abspath_results)
-    df.dropna(inplace=True)
+    if dropna:
+        df.dropna(inplace=True)
     df["path_results_from_root"] = str_path_results
     return df
 

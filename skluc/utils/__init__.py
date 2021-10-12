@@ -42,6 +42,31 @@ def deprecated(msg=""):
         return new_func
     return inner
 
+
+class SingletonMeta(type):
+    """
+    Implements Singleton design pattern.
+    """
+
+    _instances = {}
+
+    def __call__(cls, *args, **kwargs):
+        """
+        When cls is "called" (asked to be initialised), return a new object (instance of cls) only if no object of that cls
+        have already been created. Else, return the already existing instance of cls.
+
+        args and kwargs parameters only affect the first call to constructor.
+
+        :param args:
+        :param kwargs:
+        :return:
+        """
+        if cls not in cls._instances:
+            instance = super().__call__(*args, **kwargs)
+            cls._instances[cls] = instance
+        return cls._instances[cls]
+
+
 class Singleton(type):
     _instances = WeakValueDictionary()
 

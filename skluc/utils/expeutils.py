@@ -1,6 +1,13 @@
+import random
+
+import time
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 from loguru import logger
+
+from skluc.utils import SingletonMeta
 
 
 def get_ext_output_file(curr_file, project_dir, ext="csv"):
@@ -118,3 +125,89 @@ def get_line_of_interest(df, keys_of_interest, dct_values, dct_mapping_key_of_in
     assert not len(line_of_interest) < 1, "No corresponding pretrained model found in directory"
 
     return line_of_interest
+
+
+class ParameterManager(dict):
+    def __init__(self, dct_params, **kwargs):
+        super().__init__(**dct_params, **kwargs)
+        self.__init_identifier()
+        self.init_output_file()
+
+    def __init_identifier(self):
+        # job_id = os.environ.get('OAR_JOB_ID')  # in case it is running with oarsub job scheduler
+        # if job_id is None:
+        job_id = str(int(time.time()))
+        job_id = int(job_id) + random.randint(0, 10 ** len(job_id))
+        # else:
+        #     job_id = int(job_id)
+
+        self["identifier"] = str(job_id)
+
+    def init_output_file(self):
+        self["output_file_resprinter"] = Path(self["identifier"] + "_results.csv")
+
+
+class ResultPrinter(metaclass=SingletonMeta):
+    """
+    Class that handles 1-level dictionnaries and is able to print/write their values in a csv like format.
+    """
+    def __init__(self, *args, header=True, output_file=None, columns=None):
+        """
+        :param args: the dictionnaries objects you want to print.
+        :param header: tells if you want to print the header
+        :param output_file: path to the outputfile. If None, no outputfile is written on ResultPrinter.print()
+        """
+        self.__dict = dict()
+        self.__header = header
+        self.__output_file = output_file
+        self.__columns = columns
+
+        if self.__columns is not None:
+            self.__dict.update(dict((col, None) for col in self.__columns))
+
+    def check_keys_in_columns(self, dct_key_values):
+        if self.__columns is None:
+            return
+        else:
+            set_columns = set(self.__columns)
+            set_keys_dict = set(dct_key_values.keys())
+            diff = set_keys_dict.difference(set_columns)
+            if len(diff) == 0:
+                return
+            else:
+                raise KeyError(f"Keys {diff} are not in the pre-specified column names.")
+
+    def add(self, **kwargs):
+        """
+        Add dictionnary after initialisation.
+        :param d: the dictionnary object you want to add.
+        :return:
+        """
+        self.check_keys_in_columns(kwargs)
+        self.__dict.update(kwargs)
+
+    def _get_ordered_items(self):
+        all_keys, all_values = zip(*self.__dict.items())
+        arr_keys, arr_values = np.array(all_keys), np.array(all_values, dtype=object)
+        indexes_sort = np.argsort(arr_keys)
+        return list(arr_keys[indexes_sort]), list(arr_values[indexes_sort])
+
+    def print(self):
+        """
+        Call this function whener you want to print/write to file the content of the dictionnaires.
+        :return:
+        """
+        headers, values = self._get_ordered_items()
+        headers = [str(h) for h in headers]
+        s_headers = ",".join(headers)
+        values = [str(v) for v in values]
+        s_values = ",".join(values)
+        if self.__header:
+            print(s_headers)
+        print(s_values)
+        if self.__output_file is not None:
+            with open(self.__output_file, "w+") as out_f:
+                if self.__header:
+                    out_f.write(s_headers + "\n")
+                out_f.write(s_values + "\n")
+

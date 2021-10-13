@@ -1,6 +1,8 @@
 """
 General utility functions that doesn't fit in other categories. Usually programming tools.
 """
+import timeit
+
 import logging
 import daiquiri
 import warnings
@@ -78,6 +80,7 @@ class Singleton(type):
             cls._instances[cls] = instance
         return cls._instances[cls]
 
+
 def singleton(cls):
     """
     Simple singleton implementation.
@@ -101,6 +104,7 @@ def singleton(cls):
         return instance
     return class_instanciation_or_not
 
+
 def memory_usage():
     """
     Copy pasted from https://airbrake.io/blog/python-exception-handling/memoryerror
@@ -120,6 +124,7 @@ def memory_usage():
     return 'process = %s total = %s available = %s used = %s free = %s' \
           % (proc, total, available, used, free)
 
+
 def time_fct(fct, *args, n_iter=100, **kwargs):
     """
     Return the average time spent by the function.
@@ -138,6 +143,7 @@ def time_fct(fct, *args, n_iter=100, **kwargs):
         time_sum += stop - start
     return time_sum / n_iter
 
+
 def log_memory_usage(context=None):
     """Logs current memory usage stats.
     See: https://stackoverflow.com/a/15495136
@@ -152,3 +158,26 @@ def log_memory_usage(context=None):
     mem = memory_usage()
     str_memory_usage += mem
     logger.debug(str_memory_usage)
+
+
+class Chronometer(object):
+    def __init__(self, process_only=False):
+        if process_only:
+            self.time_fun = t.process_time
+        else:
+            self.time_fun = timeit.default_timer
+
+    def __enter__(self):
+        self.start_time = self.time_fun()
+        self.stop_time = None
+        return self
+
+    def __exit__(self, type, value, traceback):
+        self.stop_time = self.time_fun()
+
+    @property
+    def elapsed_time(self):
+        if self.stop_time is None:
+            return self.time_fun() - self.start_time
+        else:
+            return self.stop_time - self.start_time

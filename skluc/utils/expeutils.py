@@ -156,6 +156,7 @@ class ResultPrinter(metaclass=SingletonMeta):
         :param args: the dictionnaries objects you want to print.
         :param header: tells if you want to print the header
         :param output_file: path to the outputfile. If None, no outputfile is written on ResultPrinter.print()
+        :param columns: the list of columns (strings) that are allowed in the result directory.
         """
         self.__dict = dict()
         self.__header = header

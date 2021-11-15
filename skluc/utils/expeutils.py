@@ -81,8 +81,9 @@ def get_line_of_interest(df, keys_of_interest, dct_values, dct_mapping_key_of_in
     logger.debug(keys_of_interest)
     set_element_to_remove = set()
     for k in keys_of_interest:
-        logger.debug("{}, {}, {}".format(dct_values[dct_mapping_key_of_interest_to_dict.get(k, k)], type(dct_values[dct_mapping_key_of_interest_to_dict.get(k, k)]), k))
         try:
+            logger.debug("{}, {}, {}".format(dct_values[dct_mapping_key_of_interest_to_dict.get(k, k)],
+                                             type(dct_values[dct_mapping_key_of_interest_to_dict.get(k, k)]), k))
             key_type = df.dtypes[k].name
             if key_type == "object" or dct_values[dct_mapping_key_of_interest_to_dict.get(k, k)] is None or np.isnan(dct_values[dct_mapping_key_of_interest_to_dict.get(k, k)]):
                 df[k] = df[k].astype(str)

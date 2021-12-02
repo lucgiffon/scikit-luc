@@ -50,7 +50,7 @@ def build_df_from_dir(path_results_dir, col_to_delete=()):
     real_count = 0
     for csv_filename in files:
         if csv_filename.suffix == ".csv":
-            df = pd.read_csv(csv_filename)
+            df = pd.read_csv(csv_filename, index_col=False)
             lst_df.append(df)
             real_count += 1
         else:
@@ -152,7 +152,7 @@ class ResultPrinter(metaclass=SingletonMeta):
     """
     Class that handles 1-level dictionnaries and is able to print/write their values in a csv like format.
     """
-    def __init__(self, *args, header=True, output_file=None, columns=None):
+    def __init__(self, *args, header=True, output_file=None, columns=None, separator=","):
         """
         :param args: the dictionnaries objects you want to print.
         :param header: tells if you want to print the header
@@ -166,6 +166,8 @@ class ResultPrinter(metaclass=SingletonMeta):
 
         if self.__columns is not None:
             self.__dict.update(dict((col, None) for col in self.__columns))
+
+        self.separator = separator
 
     def check_keys_in_columns(self, dct_key_values):
         if self.__columns is None:
@@ -201,9 +203,9 @@ class ResultPrinter(metaclass=SingletonMeta):
         """
         headers, values = self._get_ordered_items()
         headers = [str(h) for h in headers]
-        s_headers = ",".join(headers)
-        values = [str(v) for v in values]
-        s_values = ",".join(values)
+        s_headers = self.separator.join(headers)
+        values = [str(v) if not type(v) == str else "\""+v+"\"" for v in values]
+        s_values = self.separator.join(values)
         if self.__header:
             print(s_headers)
         print(s_values)

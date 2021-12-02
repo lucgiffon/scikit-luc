@@ -181,3 +181,15 @@ class Chronometer(object):
             return self.time_fun() - self.start_time
         else:
             return self.stop_time - self.start_time
+
+def is_number(possible_number):
+    has_len = hasattr(possible_number, "__len__")
+    if not has_len:
+        return True
+    else:
+        try:
+            len(possible_number)
+        except:
+            return True
+
+    return False

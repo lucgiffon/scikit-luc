@@ -19,7 +19,7 @@ from pathlib import Path
 from sklearn import preprocessing
 from sklearn.datasets import make_blobs, fetch_kddcup99, fetch_covtype
 from skluc.datasets.bio_data_utils import load_expression, clean_labels, load_phenotype, \
-    load_methylation, _load_phenotypes,  download_dataset, clean_sample_IDs
+    load_methylation, _load_phenotypes,  clean_sample_IDs
 from skluc.utils.datautils.imageutils import crop_center
 from skluc.utils.osutils import download_file, logger
 

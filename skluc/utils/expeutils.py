@@ -275,5 +275,5 @@ class ObjectiveValuesStorage(IntermediateResultStorage):
 
 if __name__ == "__main__":
     assert ObjectiveValuesStorage() is ObjectiveValuesStorage()
-    assert not(IntermediateResultStorage() is ObjectiveValuesStorage())
+    assert not (IntermediateResultStorage() is ObjectiveValuesStorage())
     assert IntermediateResultStorage() is IntermediateResultStorage()

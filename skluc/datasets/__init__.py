@@ -1,7 +1,12 @@
 # -*- coding: utf-8 -*-
-
+"""
+This module contains utility functions to download datasets and return them as X,Y (or X, None) numpy ndarray.
+"""
 import os
+import pathlib
 import tempfile
+from typing import Literal
+
 import numpy as np
 import pandas as pd
 import re
@@ -13,7 +18,8 @@ import cv2
 from pathlib import Path
 from sklearn import preprocessing
 from sklearn.datasets import make_blobs, fetch_kddcup99, fetch_covtype
-from sklearn.model_selection import train_test_split
+from skluc.datasets.bio_data_utils import load_expression, clean_labels, load_phenotype, \
+    load_methylation, _load_phenotypes,  download_dataset, clean_sample_IDs
 from skluc.utils.datautils.imageutils import crop_center
 from skluc.utils.osutils import download_file, logger
 
@@ -26,7 +32,7 @@ def load_kddcup04bio():
         matfile_path = download_file(data_url, d_tmp)
         data = pd.read_csv(matfile_path, delim_whitespace=True)
 
-    return data.values
+    return data.values, None
 
 
 def load_census1990():
@@ -37,7 +43,7 @@ def load_census1990():
         matfile_path = download_file(data_url, d_tmp)
         data = pd.read_csv(matfile_path)
 
-    return data.values[1:] # remove the `caseId` attribute
+    return data.values[1:], None # remove the `caseId` attribute
 
 
 def load_plants():
@@ -67,7 +73,7 @@ def load_plants():
 
     arr_lst_plants = np.array(lst_plants)
 
-    return arr_lst_plants
+    return arr_lst_plants, None
 
 
 def load_caltech(final_size):
@@ -124,9 +130,7 @@ def load_caltech(final_size):
         print(X.shape)
         print(y.shape)
 
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.33, random_state = 42, stratify=y)
-
-    return (X_train, y_train), (X_test, y_test)
+    return X, y
 
 
 def load_coil20(final_size):
@@ -157,9 +161,7 @@ def load_coil20(final_size):
     X = np.vstack(lst_images)
     y = np.array(lst_classes_idx)
 
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random_state=42, stratify=y)
-
-    return (X_train, y_train), (X_test, y_test)
+    return X, y
 
 
 def load_kddcup99():
@@ -189,3 +191,99 @@ def generator_blobs_data(data_size, size_batch, nb_features, nb_centers):
         logger.info("Chunk {}/{}".format(i + 1, total_nb_chunks))
         X, y = make_blobs(size_batch, n_features=nb_features, centers=init_centers, cluster_std=12.)
         yield X, y
+
+
+def load_bio_data(database: Literal["PANCAN", "GDC"], data_kind: Literal["expression", "methylation", "whole"], data_path: pathlib.Path):
+    """
+
+    Several databases on UCSC xenabrowser: TCGA Pan-Cancer (PANCAN), GDC TCGA, legacy TCGA.
+
+    Data source
+    -----------
+    url = {}
+    url['PANCAN'] = {
+        'phenotype': 'https://tcga-pancan-atlas-hub.s3.us-east-1.amazonaws.com/download/Survival_SupplementalTable_S1_20171025_xena_sp',
+        'phenotype_subtypes': 'https://tcga-pancan-atlas-hub.s3.us-east-1.amazonaws.com/download/TCGASubtype.20170308.tsv.gz',
+        'expression_counts': 'https://tcga-pancan-atlas-hub.s3.us-east-1.amazonaws.com/download/EB%2B%2BAdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena.gz',
+        'methylation450': 'https://tcga-pancan-atlas-hub.s3.us-east-1.amazonaws.com/download/jhu-usc.edu_PANCAN_HumanMethylation450.betaValue_whitelisted.tsv.synapse_download_5096262.xena.gz'
+    }
+
+    url['GDC'] = {
+        'phenotype': 'https://gdc-hub.s3.us-east-1.amazonaws.com/download/TCGA-{}.GDC_phenotype.tsv.gz'.format(cancer),
+        'expression_counts': 'https://gdc-hub.s3.us-east-1.amazonaws.com/download/TCGA-{}.htseq_counts.tsv.gz'.format(cancer),
+        'ID_gene_mapping': 'https://gdc-hub.s3.us-east-1.amazonaws.com/download/gencode.v22.annotation.gene.probeMap',
+        'methylation450': 'https://gdc-hub.s3.us-east-1.amazonaws.com/download/TCGA-{}.methylation450.tsv.gz'.format(cancer)
+    }
+
+    url['legacy'] = {
+        'phenotype': 'https://tcga-xena-hub.s3.us-east-1.amazonaws.com/download/TCGA.{}.sampleMap%2F{}_clinicalMatrix'.format(cancer, cancer),
+        'expression_counts': 'https://tcga-xena-hub.s3.us-east-1.amazonaws.com/download/TCGA.{}.sampleMap%2FHiSeqV2.gz'.format(cancer),
+        'ID_gene_mapping': 'https://tcga-xena-hub.s3.us-east-1.amazonaws.com/download/probeMap%2Fhugo_gencode_good_hg19_V24lift37_probemap'
+    }
+
+    Parameters
+    ----------
+    database
+    data_kind
+    data_path
+
+    Returns
+    -------
+
+    """
+    # DATASET 1: classify cancer types from biological data
+    ## The dataset contains samples from 33 cancer types.
+    # database = 'PANCAN'
+    # cancer = None
+    # label_name = "cancer type abbreviation"
+    # or
+    # DATASET 2: classify breast cancer stages from biological data
+    ## The data contains several possible labels, not necessarily related to the disease.
+    ## Examples: "age_at_initial_pathologic_diagnosis", "menopause_status", "pathologic_M", "pathologic_N", "pathologic_T"
+    ## For information, T = tumor size, M = metastasis, N = lymph nodes spreading.
+    ## Tumor stages are determined from T,M,N.
+    ## More details on https://www.cancer.org/cancer/breast-cancer/understanding-a-breast-cancer-diagnosis/stages-of-breast-cancer.html
+    # database = 'GDC'
+    # cancer = 'BRCA'
+    # label_name = "tumor_stage.diagnoses"
+    if database == "PANCAN":
+        cancer = None
+        label_name = "cancer type abbreviation"
+    else:
+        cancer = 'BRCA'
+        label_name = "tumor_stage.diagnoses"
+
+
+    # download_dataset(d_tmp, database, cancer)
+
+    labels, label_key, label_map = _load_phenotypes(data_path, database, cancer, label_name)
+    if data_kind == "expression" or data_kind == "whole":
+        samples_expression = load_expression(data_path, database, cancer)
+        sample_ids_expression = clean_sample_IDs(samples_expression, labels, label_key)
+        samples_expression = samples_expression.loc[sample_ids_expression]
+        samples = samples_expression
+        sample_ids = sample_ids_expression
+    if data_kind == "methylation" or data_kind == "whole":
+        samples_methylation = load_methylation(data_path, database, cancer)
+        sample_ids_methylation = clean_sample_IDs(samples_methylation, labels, label_key)
+        samples_methylation = samples_methylation.loc[sample_ids_methylation]
+        samples = samples_methylation
+        sample_ids = sample_ids_methylation
+
+    if data_kind == "whole":
+        sample_ids = list(set(sample_ids_expression).intersection(sample_ids_methylation))
+        samples_expression = samples_expression.loc[sample_ids]
+        samples_methylation = samples_methylation.loc[sample_ids]
+        samples = pd.concat([samples_expression, samples_methylation], axis=1)
+
+    try:
+        samples_x = samples.values
+        labels = labels.loc[sample_ids]
+        labels_y = labels.values
+        labels_y = np.array([label_map[val] for val in labels_y])
+    except NameError:
+        raise NameError(f"`data_kind` function attribute should be in Literal['expression', 'methylation', 'whole'] but is {data_kind}")
+
+    return samples_x, labels_y
+
+

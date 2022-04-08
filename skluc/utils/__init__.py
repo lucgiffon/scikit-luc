@@ -4,6 +4,8 @@ General utility functions that doesn't fit in other categories. Usually programm
 import timeit
 
 import logging
+from typing import Any
+
 import daiquiri
 import warnings
 from weakref import WeakValueDictionary
@@ -11,6 +13,7 @@ import psutil
 import time as t
 import os
 
+# todo: remove this? and dependency to daiquiri? use loguru instead
 daiquiri.setup(level=logging.DEBUG)
 logger = daiquiri.getLogger()
 
@@ -182,14 +185,22 @@ class Chronometer(object):
         else:
             return self.stop_time - self.start_time
 
-def is_number(possible_number):
-    has_len = hasattr(possible_number, "__len__")
-    if not has_len:
-        return True
-    else:
-        try:
-            len(possible_number)
-        except:
-            return True
 
-    return False
+def is_number(value: Any) -> bool:
+    """
+    Check if the input str can be cast to float.
+
+    Parameters
+    ----------
+    value
+        The variable to test.
+
+    Returns
+    -------
+        True if the input is a float
+    """
+    try:
+        float(value)
+        return True
+    except ValueError:
+        return False

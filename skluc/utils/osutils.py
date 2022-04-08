@@ -115,7 +115,7 @@ def check_files(filepaths):
     logger.debug("Check existence of files {}".format(str(filepaths)))
     return all([os.path.exists(fpath) for fpath in filepaths])
 
-def get_project_dir_path(__file, name_project):
+def get_project_dir_path(__file, name_project) -> pathlib.Path:
     """
     Return the subpath of __file from the begining of the file to the name of the project.
 

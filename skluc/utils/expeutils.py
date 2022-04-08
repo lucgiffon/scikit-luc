@@ -1,6 +1,7 @@
+import pathlib
 import random
 from collections import defaultdict
-
+from typing import Iterable
 import time
 from pathlib import Path
 
@@ -11,19 +12,43 @@ from loguru import logger
 from skluc.utils import SingletonMeta
 import matplotlib.pyplot as plt
 
-def get_ext_output_file(curr_file, project_dir, ext="csv"):
-    """
-    Return output file name corresponding to current postprocessing script.
 
-    :param ext:
-    :return:
+def get_processed_result_filepath(curr_file, project_dir, ext="csv") -> pathlib.Path:
     """
+    # todo make this function more versatile because it really relies on my organization right now
+
+    Return output file path corresponding to current postprocessing script.
+
+    Current file should have a path like:
+
+    /.../.../yyyy/mm/script.py
+
+    The outputfile will be like:
+
+    `project_dir`/results/processed/yyyy/mm/script.`ext`
+
+
+    Parameters
+    ----------
+    curr_file:
+        The current file path with the
+    project_dir:
+        The root of the project.
+    ext:
+        The extension to append to the filename in the final path.
+
+    Returns
+    -------
+        The path to the new result file.
+    """
+    # curr_file be like: "/home/toto/project/code/postprocessing/yyyy/mm/script.py"
+    # from the example above, take only the string "yyyy/mm/script"
     curr_file_path = "/".join(str(curr_file).split("/")[-3:]).split(".")[0]
     csv_file_path = curr_file_path + f".{ext}"
     output_file = project_dir / "results/processed/" / csv_file_path
     return output_file
 
-
+# todo make df utils submodule for scikit luc
 def get_df_results(str_path_results, project_dir, dropna=True):
     """
     Return the df corresponding to csv file project_dir/str_path_results.
@@ -65,15 +90,26 @@ def build_df_from_dir(path_results_dir, col_to_delete=()):
     return total_df
 
 
-def get_line_of_interest(df, keys_of_interest, dct_values, dct_mapping_key_of_interest_to_dict=None):
+def get_line_of_interest(df: pd.DataFrame, keys_of_interest: Iterable, dct_values: dict,
+                         dct_mapping_key_of_interest_to_dict: dict = None) -> pd.DataFrame:
     """
     Get the single line in `df` that perfectly matches the values in `dct_values` for the `keys_of_interest`.
 
-    :param df: The dataframe where to look for the perfect match.
-    :param keys_of_interest: The columns of the dataframe that are interesting for the match.
-    :param dct_values: The reference values of the columns to match.
-    :param dct_mapping_key_of_interest_to_dict: Mapping between the keys of interest and the dict values.
-    :return:
+    Parameters
+    ----------
+    df:
+        The dataframe where to look for the perfect match.
+    keys_of_interest:
+        The columns of the dataframe that are interesting for the match.
+    dct_values:
+        The reference values of the columns to match.
+    dct_mapping_key_of_interest_to_dict:
+        Mapping between the keys of interest and the `dct_values`.
+        It is useful if the column in the dataframe has a different name than the key in the `dct_values` attribute.
+
+    Returns
+    -------
+        The dataframe containing one line of the input df matching the dct_values.
     """
     if dct_mapping_key_of_interest_to_dict is None:
         dct_mapping_key_of_interest_to_dict = dict()
@@ -81,6 +117,8 @@ def get_line_of_interest(df, keys_of_interest, dct_values, dct_mapping_key_of_in
     queries = []
     logger.debug(keys_of_interest)
     set_element_to_remove = set()
+    # this loop buils a list of "queries"
+    # (strings to evaluate in order to get a boolean index array. Example: 'df["column"] == value')
     for k in keys_of_interest:
         try:
             logger.debug("{}, {}, {}".format(dct_values[dct_mapping_key_of_interest_to_dict.get(k, k)],
@@ -105,6 +143,7 @@ def get_line_of_interest(df, keys_of_interest, dct_values, dct_mapping_key_of_in
         query = "df_of_interest['{}']=={}".format(k, str_k)
         queries.append(query)
 
+    # some keys of interest might be absent from df.
     keys_of_interest = list(set(keys_of_interest).difference(set_element_to_remove))
 
     # s_query = " & ".join(queries)
@@ -119,8 +158,16 @@ def get_line_of_interest(df, keys_of_interest, dct_values, dct_mapping_key_of_in
         #     pass
         df_of_interest = df_of_interest_tmp
 
-    line_of_interest = df_of_interest
-    line_of_interest.drop_duplicates(keys_of_interest, inplace=True)
+    line_of_interest_no_duplicate = df_of_interest.drop_duplicates(keys_of_interest, inplace=False)
+    if not df_of_interest.equals(line_of_interest_no_duplicate):
+        columns_not_interesting_with_different_values = set()
+        for column in set(df_of_interest.columns).difference(keys_of_interest):
+            if not all(df_of_interest[column].fillna(0) == df_of_interest[column].fillna(0).iloc[0]):
+                columns_not_interesting_with_different_values.add(column)
+        logger.warning(f"There was some duplicated lines having same values for keys of interest. Columns with different values are: {columns_not_interesting_with_different_values}")
+
+    line_of_interest = line_of_interest_no_duplicate
+
     logger.debug(line_of_interest)
 
     assert not len(line_of_interest) > 1, "The parameters doesn't allow to discriminate only one pre-trained model in directory. There are multiple"

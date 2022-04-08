@@ -51,7 +51,8 @@ setup(
                       'requests',
                       'click',
                       'loguru',
-                      'pandas'],
+                      'pandas',
+                      'pyyaml'],
     # classifiers is needed for uploading package on pypi.
     # The list of classifiers elements can be found at :
     # https://pypi.python.org/pypi?%3Aaction=list_classifiers

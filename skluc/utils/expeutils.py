@@ -183,14 +183,15 @@ class ParameterManager(dict):
         self.init_output_file()
 
     def __init_identifier(self):
-        # job_id = os.environ.get('OAR_JOB_ID')  # in case it is running with oarsub job scheduler
-        # if job_id is None:
-        job_id = str(int(time.time()))
-        job_id = int(job_id) + random.randint(0, 10 ** len(job_id))
-        # else:
-        #     job_id = int(job_id)
+        if "identifier" not in self:
+            # job_id = os.environ.get('OAR_JOB_ID')  # in case it is running with oarsub job scheduler
+            # if job_id is None:
+            job_id = str(int(time.time()))
+            job_id = int(job_id) + random.randint(0, 10 ** len(job_id))
+            # else:
+            #     job_id = int(job_id)
 
-        self["identifier"] = str(job_id)
+            self["identifier"] = str(job_id)
 
     def init_output_file(self):
         self["output_file_resprinter"] = Path(self["identifier"] + "_results.csv")
@@ -200,7 +201,7 @@ class ResultPrinter(metaclass=SingletonMeta):
     """
     Class that handles 1-level dictionnaries and is able to print/write their values in a csv like format.
     """
-    def __init__(self, *args, header=True, output_file=None, columns=None, separator=","):
+    def __init__(self, parameters_dict=None, header=True, output_file=None, columns: list=None, separator=","):
         """
         :param args: the dictionnaries objects you want to print.
         :param header: tells if you want to print the header
@@ -211,11 +212,14 @@ class ResultPrinter(metaclass=SingletonMeta):
         self.__header = header
         self.__output_file = output_file
         self.__columns = columns
+        self.separator = separator
 
         if self.__columns is not None:
             self.__dict.update(dict((col, None) for col in self.__columns))
 
-        self.separator = separator
+        if parameters_dict is not None:
+            self.__dict.update(parameters_dict)
+            self.__columns.extend(list(parameters_dict))
 
     def check_keys_in_columns(self, dct_key_values):
         if self.__columns is None:
